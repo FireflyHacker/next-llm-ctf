@@ -7,10 +7,13 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    AUTH_SECRET: z.string(),
+    AUTH_SECRET:
+      process.env.NODE_ENV === "production"
+        ? z.string()
+        : z.string().optional(),
     AUTH_AUTHENTIK_ID: z.string(),
     AUTH_AUTHENTIK_SECRET: z.string(),
-    AUTH_AUTHENTIK_ISSUER: z.string().url(),
+    AUTH_AUTHENTIK_ISSUER: z.string(),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -32,9 +35,9 @@ export const env = createEnv({
    */
   runtimeEnv: {
     AUTH_SECRET: process.env.AUTH_SECRET,
-    AUTH_AUTHENTIK_ID: process.env.AUTHENTIK_ID,
-    AUTH_AUTHENTIK_SECRET: process.env.AUTHENTIK_SECRET,
-    AUTH_AUTHENTIK_ISSUER: process.env.AUTHENTIK_ISSUER,
+    AUTH_AUTHENTIK_ID: process.env.AUTH_AUTHENTIK_ID,
+    AUTH_AUTHENTIK_SECRET: process.env.AUTH_AUTHENTIK_SECRET,
+    AUTH_AUTHENTIK_ISSUER: process.env.AUTH_AUTHENTIK_ISSUER,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
   },

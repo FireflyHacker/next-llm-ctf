@@ -3,11 +3,82 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  // Optional for WebAuthn support
+  Authenticator Authenticator[]
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+ 
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@id([provider, providerAccountId])
+}
+ 
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@id([identifier, token])
+}
+ 
+// Optional for WebAuthn support
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@id([userId, credentialID])
 }
 
 model Team {
@@ -22,48 +93,49 @@ model Team {
   defender Boolean
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  defensePrompts DefensePrompt[]
 }
 
 model Competition {
   id String @unique @default(uuid())
   name String
-  description String
+  description String @default("")
   image String
-  round Int
-  prompts Prompt[]
+  round Int @default(1)
+  compitionPrompts CompetitionPrompt[]
+  defensePrompts DefensePrompt[]
   teams Team[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Prompt {
-  id String @unique @default(uuid())
-  isPost Boolean
-  name String
-  description String
-  competitionId String
+model CompetitionPrompt {
+  @@unique([competitionId, promptId])
+  id String @id @default(uuid())
   order Int
-  image String
-  model String
-  maxHealth Int
-  health Int
+  competitionId String
+  promptId String
   competition Competition @relation(fields: [competitionId], references: [id])
-  defenses TeamDefense[]
+  prompt String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model TeamDefense {
+model DefensePrompt {
   id String @id @default(uuid())
-  prompt Prompt @relation(fields: [promptId], references: [id])
+  order Int
+  teamId String
   promptId String
-  script String
+  team Team @relation(fields: [teamId], references: [id])
+  prompt String
+  competitionId String
+  competition Competition @relation(fields: [competitionId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 model TeamScore {
-  @@unique([teamId, competitionId])
   id String @id @default(uuid())
   teamId String
   competitionId String

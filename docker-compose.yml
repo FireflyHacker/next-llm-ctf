@@ -12,15 +12,21 @@ services:
       - "3000:3000"
     image: t3-app
     environment:
-      DATABASE_URL: ${DATABASE_URL} 
+      DATABASE_URL: ${DATABASE_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_AUTHENTIK_ID: ${AUTH_AUTHENTIK_ID}
+      AUTH_AUTHENTIK_SECRET: ${AUTH_AUTHENTIK_SECRET}
+      AUTH_AUTHENTIK_ISSUER: ${AUTH_AUTHENTIK_ISSUER}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
   
   postgres:
     container_name: next-llm-ctf-postgres
     image: 'postgres:latest'
     ports:
-      - ${DB_PORT}:5432
+      - 5432:5432
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: R0po5Dpy0e9xot
       POSTGRES_DB: next-llm-ctf
 

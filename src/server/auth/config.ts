@@ -33,9 +33,9 @@ declare module "next-auth" {
 export const authConfig = {
   providers: [
     Authentik({
-      clientId: process.env.AUTHENTIK_ID,
-      clientSecret: process.env.AUTHENTIK_SECRET,
-      issuer: process.env.AUTHENTIK_ISSUER,
+      clientId: process.env.AUTH_AUTHENTIK_ID,
+      clientSecret: process.env.AUTH_AUTHENTIK_SECRET,
+      issuer: process.env.AUTH_AUTHENTIK_ISSUER,
     }),
     /**
      * ...add more providers here.

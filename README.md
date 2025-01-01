@@ -1,3 +1,9 @@
+## Deploy:
+- Set the values in .env to match what you want
+- `docker compose up -d --build`
+- `npx prisma db push`
+- Go to http://localhost:3000
+
 ## Ideas
 
 - Defense prompt creation

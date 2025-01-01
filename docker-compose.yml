@@ -1,6 +1,18 @@
 version: "3.9"
 services:
+  db:
+    container_name: next-llm-ctf-postgres
+    image: 'postgres:latest'
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: next-llm-ctf
+  
   app:
+    depends_on:
+      - db
     platform: "linux/amd64"
     build:
       context: .
@@ -19,14 +31,3 @@ services:
       AUTH_AUTHENTIK_ISSUER: ${AUTH_AUTHENTIK_ISSUER}
       AUTH_TRUST_HOST: ${AUTH_TRUST_HOST}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
-  
-  postgres:
-    container_name: next-llm-ctf-postgres
-    image: 'postgres:latest'
-    ports:
-      - 5432:5432
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: R0po5Dpy0e9xot
-      POSTGRES_DB: next-llm-ctf
-

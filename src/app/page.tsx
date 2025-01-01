@@ -1,37 +1,66 @@
 import Link from "next/link";
+import { auth, signIn, signOut } from '../server/auth';
 
-export default function HomePage() {
+
+export default async function HomePage() {
+  const session = await auth();
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-        </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/usage/first-steps"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">First Steps →</h3>
-            <div className="text-lg">
-              Just the basics - Everything you need to know to set up your
-              database and authentication.
-            </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/introduction"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Documentation →</h3>
-            <div className="text-lg">
-              Learn more about Create T3 App, the libraries it uses, and how to
-              deploy it.
-            </div>
-          </Link>
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      {/* Navbar */}
+      <header className="bg-blue-600 text-white py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center px-6">
+          <h1 className="text-xl font-bold">Next-LLM-CTF</h1>
+          <div>
+            {session ? (
+              <div className="flex items-center space-x-4">
+                <span className="font-medium">Welcome, {session.user.name ?? session.user.email}!</span>
+                <Link href="/api/auth/signout"
+                className="bg-red-500 hover:bg-red-600 text-white py-1 px-4 rounded-lg transition">
+                Logout
+                </Link>
+              </div>
+            ) : (
+              <Link
+                href="/api/auth/signin"
+                className="bg-green-500 hover:bg-green-600 text-white py-1 px-4 rounded-lg transition"
+              >
+                Login
+              </Link>
+            )}
+          </div>
         </div>
-      </div>
-    </main>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center px-6">
+        <div className="max-w-4xl bg-white shadow-lg rounded-lg p-8">
+          <h2 className="text-3xl font-bold mb-4 text-center">Welcome to Next-LLM-CTF</h2>
+          <p className="text-gray-700 text-lg leading-relaxed mb-6">
+            Next-LLM-CTF is an advanced platform for hosting **Capture The Flag (CTF)** competitions
+            centered around **Large Language Models (LLMs)**. This project enables participants to
+            design and test their own attack and defense strategies using dynamic workflows and
+            real-world techniques.
+          </p>
+          <ul className="list-disc pl-6 text-gray-700 text-lg mb-6">
+            <li>Develop defensive workflows using Python and prompt engineering.</li>
+            <li>Test your strategies against simulated attacks in a controlled environment.</li>
+            <li>Collaborate with your team to optimize defenses and score points.</li>
+          </ul>
+          <p className="text-gray-700 text-lg leading-relaxed">
+            Ready to get started? <strong>Sign in</strong> to create your first defense or explore
+            existing ones.
+          </p>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-gray-300 py-4">
+        <div className="max-w-7xl mx-auto text-center text-sm">
+          &copy; {new Date().getFullYear()} Next-LLM-CTF. All Rights Reserved.
+        </div>
+      </footer>
+    </div>
   );
 }
+

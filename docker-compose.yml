@@ -12,17 +12,15 @@ services:
       - "3000:3000"
     image: t3-app
     environment:
-      - DATABASE_URL=database_url_goes_here
+      DATABASE_URL: ${DATABASE_URL} 
   
   postgres:
     container_name: next-llm-ctf-postgres
     image: 'postgres:latest'
-    env_file:
-      - .postgres_env
     ports:
       - ${DB_PORT}:5432
     environment:
-      - POSTGRES_USER="postgres"
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB="next-llm-ctf"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: next-llm-ctf
 

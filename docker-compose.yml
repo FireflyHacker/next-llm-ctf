@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  app:
+    platform: "linux/amd64"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CLIENTVAR: "clientvar"
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    image: t3-app
+    environment:
+      - DATABASE_URL=database_url_goes_here
+  
+  postgres:
+    container_name: next-llm-ctf-postgres
+    image: 'postgres:latest'
+    env_file:
+      - .postgres_env
+    ports:
+      - ${DB_PORT}:5432
+    environment:
+      - POSTGRES_USER="postgres"
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB="next-llm-ctf"
+

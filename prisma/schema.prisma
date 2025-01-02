@@ -17,6 +17,8 @@ model User {
   email         String          @unique
   emailVerified DateTime?
   image         String?
+  team          Team? @relation(fields: [teamId], references: [id])
+  teamId        String
   accounts      Account[]
   sessions      Session[]
   // Optional for WebAuthn support
@@ -86,14 +88,15 @@ model Team {
   name String
   description String
   image String
+  User User[]
   teamScoreId String @unique
   teamScore TeamScore @relation(fields: [teamScoreId], references: [id])
   competitionId String?
   competition Competition? @relation(fields: [competitionId], references: [id])
   defender Boolean
+  defensePrompts DefensePrompt[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  defensePrompts DefensePrompt[]
 }
 
 model Competition {
@@ -123,6 +126,7 @@ model CompetitionPrompt {
 
 model DefensePrompt {
   id String @id @default(uuid())
+  name String
   order Int
   teamId String
   promptId String

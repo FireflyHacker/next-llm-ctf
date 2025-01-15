@@ -18,16 +18,16 @@ model User {
   emailVerified DateTime?
   image         String?
   team          Team? @relation(fields: [teamId], references: [id])
-  teamId        String
+  teamId        String?
   accounts      Account[]
   sessions      Session[]
   // Optional for WebAuthn support
-  Authenticator Authenticator[]
+  Authenticators Authenticator[]
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
- 
+
 model Account {
   userId            String
   type              String
@@ -48,7 +48,7 @@ model Account {
  
   @@id([provider, providerAccountId])
 }
- 
+
 model Session {
   sessionToken String   @unique
   userId       String
@@ -58,7 +58,7 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
- 
+
 model VerificationToken {
   identifier String
   token      String
@@ -66,7 +66,7 @@ model VerificationToken {
  
   @@id([identifier, token])
 }
- 
+
 // Optional for WebAuthn support
 model Authenticator {
   credentialID         String  @unique
@@ -84,78 +84,87 @@ model Authenticator {
 }
 
 model Team {
-  id String @unique @default(uuid())
-  name String
-  description String
-  image String
-  User User[]
-  teamScoreId String @unique
-  teamScore TeamScore @relation(fields: [teamScoreId], references: [id])
+  id            String         @id @default(uuid())
+  name          String
+  description   String
+  image         String
+  users         User[]
+  teamScoreId   String @unique
+  teamScore     TeamScore @relation(fields: [teamScoreId], references: [id])
   competitionId String?
-  competition Competition? @relation(fields: [competitionId], references: [id])
-  defender Boolean
+  competition   Competition? @relation(fields: [competitionId], references: [id])
+  defender      Boolean
   defensePrompts DefensePrompt[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Competition {
-  id String @unique @default(uuid())
-  name String
-  description String @default("")
-  image String
-  round Int @default(1)
-  compitionPrompts CompetitionPrompt[]
+  id                String               @id @default(uuid())
+  name              String
+  description       String               @default("")
+  image             String
+  round             Int                  @default(1)
+  modules           CompetitionModule[]
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  Team Team[]
+}
+
+model CompetitionModule {
+  id           String         @id @default(uuid())
+  name         String
+  description  String
+  moduleType   String // "Challenge", "Attack/Defense", etc.
+  competition  Competition @relation(fields: [competitionId], references: [id])
+  competitionId String
+  prompts      CompetitionPrompt[]
   defensePrompts DefensePrompt[]
-  teams Team[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model CompetitionPrompt {
-  @@unique([competitionId, promptId])
-  id String @id @default(uuid())
-  order Int
-  competitionId String
-  promptId String
-  competition Competition @relation(fields: [competitionId], references: [id])
-  prompt String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String         @id @default(uuid())
+  order        Int
+  moduleId     String
+  module       CompetitionModule @relation(fields: [moduleId], references: [id])
+  prompt       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model DefensePrompt {
-  id String @id @default(uuid())
-  name String
-  order Int
-  teamId String
-  promptId String
-  team Team @relation(fields: [teamId], references: [id])
-  prompt String
-  competitionId String
-  competition Competition @relation(fields: [competitionId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String         @id @default(uuid())
+  name         String
+  order        Int
+  teamId       String
+  team         Team @relation(fields: [teamId], references: [id])
+  prompt       String
+  moduleId     String
+  module       CompetitionModule @relation(fields: [moduleId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
-
 model TeamScore {
-  id String @id @default(uuid())
-  teamId String
+  id           String @id @default(uuid())
+  teamId       String
   competitionId String
-  points Point[]
-  team Team?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  points       Point[]
+  team         Team?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Point {
-  id String @id @default(uuid())
-  reason String
-  awardedBy String?
-  teamScore TeamScore @relation(fields: [teamScoreId], references: [id])
-  teamScoreId String
-  penalty Boolean @default(false)
-  amount Int
-  createdAt DateTime @default(now())
+  id           String @id @default(uuid())
+  reason       String
+  awardedBy    String?
+  teamScore    TeamScore @relation(fields: [teamScoreId], references: [id])
+  teamScoreId  String
+  penalty      Boolean @default(false)
+  amount       Int
+  createdAt    DateTime @default(now())
 }

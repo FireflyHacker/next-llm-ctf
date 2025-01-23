@@ -29,7 +29,8 @@
       "~/*": ["./src/*"],
       "@/styles/*": ["styles/*"],
       "@/components/*": ["components/*"],
-      "@/prisma/*": ["prisma/*"]
+      "@/prisma/*": ["prisma/*"],
+      "@/server/*": ["src/server/*"]
     }
   },
   "include": [

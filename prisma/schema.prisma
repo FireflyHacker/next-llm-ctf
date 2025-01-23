@@ -19,7 +19,7 @@ model User {
   image         String?
   team          Team? @relation(fields: [teamId], references: [id])
   teamId        String?
-  apiKey        String?
+  apiKey        String?         @unique
   accounts      Account[]
   sessions      Session[]
   // Optional for WebAuthn support

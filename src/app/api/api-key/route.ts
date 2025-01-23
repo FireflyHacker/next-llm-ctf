@@ -1,23 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "prisma/prisma";
 import { v4 as uuidv4 } from "uuid";
-import { authConfig } from "../../../server/auth/config"
-import getServerSession from "next-auth"
+import { auth } from '@/server/auth';
 
-const MAX_API_KEY_ACTIONS = process.env.MAX_API_KEY_ACTIONS || 3; // Default to 3 actions per day
+const MAX_API_KEY_ACTIONS = parseInt(process.env.MAX_API_KEY_ACTIONS ?? '') ?? 3; // Default to 3 actions per day
+
+/**
+ * Get the API key for the authenticated user
+ */
+
+export async function GET(req: NextRequest) {
+  // Authenticate the user
+  const session = await auth();
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Find the user in the database
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+  });
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  // Return the API key if it exists
+  if (user.apiKey) {
+    return NextResponse.json({ apiKey: user.apiKey });
+  } else {
+    return NextResponse.json({ error: "No API key found" }, { status: 404 });
+  }
+}
 
 /**
  * Generate a new API key for the authenticated user
  */
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authConfig);
+  const session = await auth();
 
-  if (!session || !session.user?.id) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const user = await prisma.user.findUnique({
-    where: { email: session.user.id },
+    where: { id: session.user.id },
   });
 
   if (!user) {
@@ -25,7 +53,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Check the user's API key actions for the day
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const today = new Date().toISOString()
   const apiKeyActionsToday = await prisma.auditLog.count({
     where: {
       userId: user.id,
@@ -64,14 +92,14 @@ export async function POST(req: NextRequest) {
  * Revoke the API key for the authenticated user
  */
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authConfig);
+  const session = await auth();
 
-  if (!session || !session.user?.email) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: session.user.id},
   });
 
   if (!user) {
@@ -79,13 +107,13 @@ export async function DELETE(req: NextRequest) {
   }
 
   // Check the user's API key actions for the day
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const today = new Date().toISOString()
   const apiKeyActionsToday = await prisma.auditLog.count({
     where: {
       userId: user.id,
       action: "API_KEY_REVOKED",
       createdAt: {
-        gte: new Date(today),
+        gte: today,
       },
     },
   });

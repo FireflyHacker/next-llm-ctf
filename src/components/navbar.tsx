@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { auth } from '../server/auth';
+import { auth } from '@/server/auth';
 
 export default async function Navbar() {
     const session = await auth();

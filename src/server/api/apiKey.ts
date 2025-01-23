@@ -11,5 +11,5 @@ export async function getUserFromApiKey(apiKey: string) {
     where: { apiKey },
   });
 
-  return user || null;
+  return user ?? null;
 }

@@ -17,7 +17,7 @@ model User {
   email         String          @unique
   emailVerified DateTime?
   image         String?
-  team          Team? @relation(fields: [teamId], references: [id])
+  team          Team?           @relation(fields: [teamId], references: [id])
   teamId        String?
   apiKey        String?         @unique
   accounts      Account[]
@@ -58,8 +58,8 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
 
 model VerificationToken {
@@ -92,14 +92,15 @@ model Team {
   description   String
   image         String
   users         User[]
-  teamScoreId   String @unique
-  teamScore     TeamScore @relation(fields: [teamScoreId], references: [id])
+  teamScoreId   String        @unique
+  teamScore     TeamScore     @relation(fields: [teamScoreId], references: [id])
   competitionId String?
-  competition   Competition? @relation(fields: [competitionId], references: [id])
+  competition   Competition?  @relation(fields: [competitionId], references: [id])
   defender      Boolean
-  defensePrompts DefensePrompt[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  Defense Defense[]
 }
 
 model Competition {
@@ -116,16 +117,16 @@ model Competition {
 }
 
 model CompetitionModule {
-  id           String         @id @default(uuid())
-  name         String
-  description  String
-  moduleType   String // "Challenge", "Attack/Defense", etc.
-  competition  Competition @relation(fields: [competitionId], references: [id])
-  competitionId String
-  prompts      CompetitionPrompt[]
-  defensePrompts DefensePrompt[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String         @id @default(uuid())
+  name            String
+  description     String
+  moduleType      String // "Challenge", "Attack/Defense", etc.
+  competition     Competition    @relation(fields: [competitionId], references: [id])
+  competitionId   String
+  prompts         CompetitionPrompt[]
+  defensePrompts  DefensePrompt[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model CompetitionPrompt {
@@ -142,22 +143,24 @@ model DefensePrompt {
   id           String         @id @default(uuid())
   name         String
   order        Int
-  teamId       String
-  team         Team @relation(fields: [teamId], references: [id])
   prompt       String
   moduleId     String
   module       CompetitionModule @relation(fields: [moduleId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  Defense Defense[]
 }
 
 model Defense {
-  id              String   @id @default(cuid())
-  name            String
-  defensePrompt   String
-  tokensUsed      Int      @default(0)
-  attemptsResisted Int     @default(0)
-  ownerId         String
+  id               String   @id @default(cuid())
+  name             String
+  teamId           String?
+  team             Team?    @relation(fields: [teamId], references: [id])
+  defensePrompts   DefensePrompt[]
+  tokensUsed       Int      @default(0)
+  attemptsResisted Int      @default(0)
+  ownerId          String
 }
 
 model Attack {
@@ -168,23 +171,23 @@ model Attack {
   ownerId         String
 }
 
-
 model TeamScore {
-  id           String @id @default(uuid())
-  teamId       String
-  competitionId String
-  points       Point[]
-  team         Team?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String @id @default(uuid())
+  teamId        String
+  competitionId String?
+  points        Point[]
+  team          Team?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Point {
   id           String @id @default(uuid())
   reason       String
+  userId       String
   awardedBy    String?
-  teamScore    TeamScore @relation(fields: [teamScoreId], references: [id])
-  teamScoreId  String
+  teamScore    TeamScore? @relation(fields: [teamScoreId], references: [id])
+  teamScoreId  String?
   penalty      Boolean @default(false)
   amount       Int
   createdAt    DateTime @default(now())

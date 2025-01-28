@@ -29,6 +29,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   AuditLog AuditLog[]
+
+  ScoringComponent ScoringComponent[]
 }
 
 model Account {
@@ -92,8 +94,6 @@ model Team {
   description   String
   image         String
   users         User[]
-  teamScoreId   String        @unique
-  teamScore     TeamScore     @relation(fields: [teamScoreId], references: [id])
   competitionId String?
   competition   Competition?  @relation(fields: [competitionId], references: [id])
   defender      Boolean
@@ -101,6 +101,8 @@ model Team {
   updatedAt     DateTime      @updatedAt
 
   Defense Defense[]
+
+  ScoringComponent ScoringComponent[]
 }
 
 model Competition {
@@ -114,6 +116,8 @@ model Competition {
   updatedAt         DateTime             @updatedAt
 
   Team Team[]
+
+  ScoringComponent ScoringComponent[]
 }
 
 model CompetitionModule {
@@ -171,34 +175,45 @@ model Attack {
   ownerId         String
 }
 
-model TeamScore {
-  id            String @id @default(uuid())
-  teamId        String
-  competitionId String?
-  points        Point[]
-  team          Team?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// Each user will have an array of scoring components, 
+// which could be stored as a separate table for flexibility.
+model ScoringComponent {
+id              String      @id @default(uuid())
+pointTotal      Int         @default(0)
+points          Point[]
+// Related user (Scores are user based, team scores are calculated from the user scores)
+user            User        @relation(fields: [userId], references: [id])
+userId          String 
+// Related team (optional)
+team            Team?       @relation(fields: [teamId], references: [id])
+teamId          String?
+// Related competition (Each scoring component is tied to a specific competition or challenge)
+competition     Competition @relation(fields: [competitionId], references: [id])
+competitionId   String
 }
 
+// This represents individual point events tied to scoring components.
 model Point {
-  id           String @id @default(uuid())
-  reason       String
-  userId       String
-  awardedBy    String?
-  teamScore    TeamScore? @relation(fields: [teamScoreId], references: [id])
-  teamScoreId  String?
-  penalty      Boolean @default(false)
-  amount       Int
-  createdAt    DateTime @default(now())
+  id                  String           @id @default(uuid())
+  penalty             Boolean          @default(false)          // Set to true if this should subtract points
+  value               Int                                       // The amount awarded/penalized
+  resourceName        String           @default("Payton Bucks") // Name of resource ($, points, etc)
+  reason              String?                                   // Why the points were awarded, e.g., "Challenge Completion," "Defense Success"
+  awardedBy           String?                                   // Defense defeated or Admin or challenge
+  // Related scoring component
+  scoringComponentId  String
+  scoringComponent    ScoringComponent @relation(fields: [scoringComponentId], references: [id])
+
+  createdAt           DateTime         @default(now())
 }
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String
-  action    String   // "API_KEY_GENERATED", "API_KEY_REVOKED", etc.
+  id        String    @id @default(cuid())
+  action    String    // "API_KEY_GENERATED", "API_KEY_REVOKED", etc.
   details   String?
-  createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
 }

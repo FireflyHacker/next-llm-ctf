@@ -37,9 +37,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const averageDefenseTokens = defense.tokensUsed || 500; // Default value for simplicity
-  const basePoints = 10;
-
   // Increment number of attempts for this user against this defense
   const previousAttempts = await prisma.attack.count({
     where: { defenseId, ownerId: user.id},
@@ -47,11 +44,6 @@ export async function POST(req: NextRequest) {
 
   const totalAttempts = previousAttempts + 1;
   const tokensUsed = prompt.split(/\s+/).length
-
-  // Calculate score
-  const efficiencyMultiplier = averageDefenseTokens / tokensUsed;
-  const attemptMultiplier = 1 / totalAttempts;
-  const attackScore = Math.round(basePoints * efficiencyMultiplier * attemptMultiplier);
 
   // Record the attack and update the user's score
   await prisma.attack.create({
@@ -63,34 +55,9 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  if (user.teamId)
-  {
-    // Check if a TeamScore exists for the user in the competition
-    let teamScore = await prisma.teamScore.findFirst({
-      where: {
-        teamId: user.teamId,
-      },
-    });
-  } else {
-    // Create a new UserScore entry if it doesn't exist
-    let teamScore = await prisma.teamScore.create({
-      data: {
-        userId: user.id,
-        teamId: user.teamId || null, // Associate with the user's team if they have one
-      },
-    });
-  }
+  // Make a call to the LLM to process the attack.
+  // TODO: Create helper functions for handling the LLM processing
+  const llmResponse = "The LLM is asleep right now. Please try again later. (ERROR: LLM Did not return anything)"
 
-  // Add a new Point to the TeamScore
-  await prisma.point.create({
-    data: {
-      reason: `Successful attack against Defense ID: ${defenseId}`,
-      awardedBy: user.id, // The ID of the user who made the attack
-      teamScoreId: teamScore.id,
-      amount: attackScore,
-      penalty: false, // Indicate it's a positive score
-    },
-  });
-
-  return NextResponse.json({ score: attackScore });
+  return NextResponse.json({ response: llmResponse });
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { DefensePrompt, PrismaClient } from "@prisma/client";
 import { auth } from '@/server/auth';
 
 const prisma = new PrismaClient();
@@ -62,22 +62,36 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, defensePrompt } = body;
+    const { name, defensePrompts } = body; // defensePrompts should be an array
 
-    if (!name || !defensePrompt) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!name || !defensePrompts || !Array.isArray(defensePrompts) || defensePrompts.length === 0) {
+      return NextResponse.json({ error: "Missing required fields or invalid defense prompts" }, { status: 400 });
     }
 
+    //TODO: get the module for the attack/defense competition
+
+    // Step 1: Create the defense with associated defense prompts
     const newDefense = await prisma.defense.create({
-      data: { 
+      data: {
         name,
-        defensePrompt,
-        ownerId: user.id, // Associate the defense with the user
+        ownerId: user.id,
+        defensePrompts: {
+          create: defensePrompts.map((prompt: { name: string; order: number; prompt: string }) => ({
+            name: prompt.name,
+            order: prompt.order,
+            prompt: prompt.prompt,
+            moduleId: moduleId, // Ensure the `moduleId` is assigned
+          })),
+        },
+      },
+      include: {
+        defensePrompts: true, // Ensure defense prompts are returned in the response
       },
     });
 
     return NextResponse.json(newDefense, { status: 201 });
   } catch (error) {
+    console.error("Error creating defense:", error);
     return NextResponse.json({ error: "Failed to create defense" }, { status: 500 });
   }
 }
